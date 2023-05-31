@@ -1,0 +1,129 @@
+package main
+
+import (
+	// "fmt"
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	// "github.com/jinzhu/gorm"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" // Impor driver PostgreSQL
+)
+
+// Definisikan struktur model Anda
+type User struct {
+	ID    uint   `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type APIResponse struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
+	Message string      `json:"message,omitempty"`
+}
+
+var db *sqlx.DB
+
+func main() {
+	// Buat koneksi ke database PostgreSQL
+	var err error
+	db, err = sqlx.Open("postgres", "host=localhost port=5432 user=gorestuser password=gorestpass dbname=gorestdevelopment sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Membuat tabel users jika belum ada
+	db.MustExec(`CREATE TABLE IF NOT EXISTS users (
+		id SERIAL PRIMARY KEY,
+		name TEXT,
+		email TEXT
+	)`)
+
+	// Inisialisasi router Gin
+	router := gin.Default()
+
+	// Definisikan rute-rute API
+	router.GET("/users", getUsers)
+	router.GET("/users/:id", getUser)
+	router.POST("/users", createUser)
+	router.PUT("/users/:id", updateUser)
+	router.DELETE("/users/:id", deleteUser)
+
+	// Jalankan server pada port 8080
+	router.Run(":8080")
+}
+
+// Handler untuk mendapatkan semua pengguna
+func getUsers(c *gin.Context) {
+	var users []User
+	err := db.Select(&users, "SELECT * FROM users")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, APIResponse{Success: false, Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, APIResponse{Success: true, Data: users})
+}
+
+// Handler untuk mendapatkan pengguna berdasarkan ID
+func getUser(c *gin.Context) {
+	id := c.Param("id")
+	var user User
+	err := db.Get(&user, "SELECT * FROM users WHERE id=$1", id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, APIResponse{Success: false, Error: "User not found"})
+		return
+	}
+	c.JSON(http.StatusOK, APIResponse{Success: true, Data: user})
+}
+
+// Handler untuk membuat pengguna baru
+func createUser(c *gin.Context) {
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, APIResponse{Success: false, Error: err.Error()})
+		return
+	}
+	err := db.Get(&user, "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *", user.Name, user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, APIResponse{Success: false, Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, APIResponse{Success: true, Data: user})
+}
+
+// Handler untuk memperbarui pengguna
+func updateUser(c *gin.Context) {
+	id := c.Param("id")
+	var user User
+	err := db.Get(&user, "SELECT * FROM users WHERE id=$1", id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, APIResponse{Success: false, Error: "User not found"})
+		return
+	}
+
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = db.Get(&user, "UPDATE users SET name=$1, email=$2 WHERE id=$3 RETURNING *", user.Name, user.Email, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, APIResponse{Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, APIResponse{Success: true, Data: user})
+}
+
+// Handler untuk menghapus pengguna
+func deleteUser(c *gin.Context) {
+	id := c.Param("id")
+	_, err := db.Exec("DELETE FROM users WHERE id=$1", id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, APIResponse{Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, APIResponse{Success: true, Message: "User deleted successfully"})
+}

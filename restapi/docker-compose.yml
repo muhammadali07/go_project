@@ -1,0 +1,17 @@
+version: '3'
+services:
+  db:
+    container_name: godb
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: gorestuser
+      POSTGRES_PASSWORD: gorestpass
+      POSTGRES_DB: gorestdevelopment
+volumes:
+  db-data:
