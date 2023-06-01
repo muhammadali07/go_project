@@ -1,4 +1,4 @@
-package main
+package main_bc
 
 import (
 	// "fmt"
@@ -27,7 +27,7 @@ type APIResponse struct {
 
 var db *sqlx.DB
 
-func main() {
+func main_bc() {
 	// Buat koneksi ke database PostgreSQL
 	var err error
 	db, err = sqlx.Open("postgres", "host=localhost port=5432 user=gorestuser password=gorestpass dbname=gorestdevelopment sslmode=disable")

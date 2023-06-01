@@ -1,10 +1,21 @@
 version: '3'
 services:
-  db:
-    container_name: godb
+  api:
+    container_name: goapi
     build:
       context: .
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/go/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  db:
+    container_name: godb
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./docker/postgres/Dockerfile
     ports:
       - '5432:5432'
     volumes:

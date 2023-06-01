@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/muhammadali07/go_project/db"
+	"restapi/db"
 )
 
 type APIResponse struct {

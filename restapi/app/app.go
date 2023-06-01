@@ -3,12 +3,13 @@ package app
 import (
 	"net/http"
 
+	"restapi/repository"
+
 	"github.com/gin-gonic/gin"
-	"github.com/muhammadali07/go_project/repository"
 )
 
 // Handler untuk mendapatkan semua pengguna
-func getUsers(c *gin.Context) {
+func GetUsers(c *gin.Context) {
 	var users []repository.User
 	err := repository.GetUsers(&users)
 	if err != nil {
@@ -19,7 +20,7 @@ func getUsers(c *gin.Context) {
 }
 
 // Handler untuk mendapatkan pengguna berdasarkan ID
-func getUser(c *gin.Context) {
+func GetUserID(c *gin.Context) {
 	id := c.Param("id")
 	user, err := repository.GetUser(id)
 	if err != nil {
@@ -30,7 +31,7 @@ func getUser(c *gin.Context) {
 }
 
 // Handler untuk membuat pengguna baru
-func createUser(c *gin.Context) {
+func CreateUser(c *gin.Context) {
 	var user repository.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, repository.APIResponse{Success: false, Error: err.Error()})
@@ -45,7 +46,7 @@ func createUser(c *gin.Context) {
 }
 
 // Handler untuk memperbarui pengguna
-func updateUser(c *gin.Context) {
+func UpdateUser(c *gin.Context) {
 	id := c.Param("id")
 	var user repository.User
 	err := c.ShouldBindJSON(&user)
@@ -68,9 +69,9 @@ func updateUser(c *gin.Context) {
 }
 
 // Handler untuk menghapus pengguna
-func deleteUser(c *gin.Context) {
+func DeleteUser(c *gin.Context) {
 	id := c.Param("id")
-	_, err := repository.DeleteUser(id)
+	err := repository.DeleteUser(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, repository.APIResponse{Error: err.Error()})
 		return

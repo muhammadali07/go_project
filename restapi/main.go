@@ -4,20 +4,26 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/muhammadali07/go_project/api"
+
+	"restapi/api"
 )
 
 func main() {
-	// Inisialisasi router Gin
+	// Initialize the Gin router
 	router := gin.Default()
 
-	// Setup router API
+	// Setup API routes
 	apiRouter := api.SetupRouter()
 
-	// Tambahkan router API ke router utama
-	router.Use(apiRouter.ServeHTTP)
+	// Convert the apiRouter.ServeHTTP function into a gin.HandlerFunc
+	apiHandler := gin.HandlerFunc(func(c *gin.Context) {
+		apiRouter.ServeHTTP(c.Writer, c.Request)
+	})
 
-	// Jalankan server pada port 8080
+	// Add the API router as middleware
+	router.Use(apiHandler)
+
+	// Run the server on port 8080
 	err := router.Run(":8080")
 	if err != nil {
 		log.Fatal(err)
