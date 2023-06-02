@@ -13,7 +13,7 @@ func GetDB() *sqlx.DB {
 
 func init() {
 	var err error
-	db, err = sqlx.Open("postgres", "host=localhost port=5432 user=gorestuser password=gorestpass dbname=gorestdevelopment sslmode=disable")
+	db, err = sqlx.Open("postgres", "host=godb port=5432 user=gorestuser password=gorestpass dbname=gorestdevelopment sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
