@@ -17,4 +17,12 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	// Membuat tabel users jika belum ada
+	db.MustExec(`CREATE TABLE IF NOT EXISTS users (
+		id SERIAL PRIMARY KEY,
+		name TEXT,
+		email TEXT,
+		created_at TIMESTAMP
+
+	)`)
 }

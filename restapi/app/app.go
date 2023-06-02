@@ -46,7 +46,7 @@ func CreateUser(c *gin.Context) {
 }
 
 // Handler untuk memperbarui pengguna
-func UpdateUser(c *gin.Context) {
+func UpdateUserID(c *gin.Context) {
 	id := c.Param("id")
 	var user repository.User
 	err := c.ShouldBindJSON(&user)
@@ -56,7 +56,7 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, repository.APIResponse{Error: err.Error()})
 		return
 	}
 
