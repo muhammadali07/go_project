@@ -1,28 +1,48 @@
 version: '3'
 services:
-  api:
-    container_name: goapi
-    build:
-      context: .
-      dockerfile: ./docker/go/Dockerfile
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-
   db:
-    container_name: godb
+    container_name: ${container_name?Variable not set}-db
     restart: unless-stopped
     build:
       context: .
       dockerfile: ./docker/postgres/Dockerfile
     ports:
-      - '5432:5432'
+      - '${postgres_db_port?Variable not set}:${postgres_db_port?Variable not set}'
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: gorestuser
-      POSTGRES_PASSWORD: gorestpass
-      POSTGRES_DB: gorestdevelopment
+      POSTGRES_USER: ${postgres_db_user?Variable not set}
+      POSTGRES_PASSWORD: ${postgres_db_password?Variable not set}
+      POSTGRES_DB: ${postgres_db?Variable not set}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "${postgres_db?Variable not set}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ${project_network?Variable not set}
+  
+  api:
+    container_name: ${container_name?Variable not set}-api
+    build:
+      context: .
+      dockerfile: ./docker/go/Dockerfile
+    environment:
+      POSTGRES_HOST: ${postgres_db_host?Variable not set}
+      POSTGRES_USER: ${postgres_db_user?Variable not set}
+      POSTGRES_PASSWORD: ${postgres_db_password?Variable not set}
+      POSTGRES_DB: ${postgres_db?Variable not set}
+    ports:
+      - '${app_port?Variable not set}:${app_port?Variable not set}'
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ${project_network?Variable not set}
+
 volumes:
   db-data:
+
+networks:
+  gonetworks:
+    external: true

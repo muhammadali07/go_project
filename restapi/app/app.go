@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 
 	"restapi/repository"
@@ -72,9 +73,10 @@ func UpdateUserID(c *gin.Context) {
 func DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 	err := repository.DeleteUser(id)
+	fmt.Println(err)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, repository.APIResponse{Error: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, repository.APIResponse{Success: true, Message: "User deleted successfully"})
+	c.JSON(http.StatusOK, repository.APIResponse{Success: true, Message: "User deleted Successfully"})
 }
